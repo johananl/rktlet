@@ -643,11 +643,9 @@ func generatePortArgs(port *runtimeApi.PortMapping) string {
 }
 
 func hasHostNetwork(req *runtimeApi.PodSandboxConfig) bool {
-	if nsOpts := req.GetLinux().GetSecurityContext().GetNamespaceOptions(); nsOpts != nil {
-		return nsOpts.HostNetwork
-	}
+	hostNet := req.GetLinux().GetSecurityContext().GetNamespaceOptions().GetNetwork()
 
-	return false
+	return hostNet == runtimeApi.NamespaceMode_NODE
 }
 
 func (r *RktRuntime) getImageHash(ctx context.Context, imageName string) (string, error) {

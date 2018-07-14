@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"k8s.io/kubernetes/pkg/kubelet/apis/cri/runtime/v1alpha2"
+	runtime "k8s.io/kubernetes/pkg/kubelet/apis/cri/runtime/v1alpha2"
 
 	"github.com/kubernetes-incubator/rktlet/tests/framework"
 	"github.com/stretchr/testify/assert"
@@ -32,7 +32,7 @@ func TestHostNetwork(t *testing.T) {
 		Linux: &runtime.LinuxPodSandboxConfig{
 			SecurityContext: &runtime.LinuxSandboxSecurityContext{
 				NamespaceOptions: &runtime.NamespaceOption{
-					HostNetwork: true,
+					Network: runtime.NamespaceMode_NODE,
 				},
 			},
 		},
