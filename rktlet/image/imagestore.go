@@ -31,7 +31,7 @@ import (
 	appcschema "github.com/appc/spec/schema"
 	rktlib "github.com/rkt/rkt/api/v1"
 	context "golang.org/x/net/context"
-	"k8s.io/kubernetes/pkg/kubelet/apis/cri/runtime/v1alpha2"
+	runtimeapi "k8s.io/kubernetes/pkg/kubelet/apis/cri/runtime/v1alpha2"
 )
 
 // TODO(tmrts): Move these errors to the container API for code re-use.
@@ -54,13 +54,13 @@ type ImageStoreConfig struct {
 }
 
 // NewImageStore creates an image storage that allows CRUD operations for images.
-func NewImageStore(cfg ImageStoreConfig) runtime.ImageServiceServer {
+func NewImageStore(cfg ImageStoreConfig) runtimeapi.ImageServiceServer {
 	return &ImageStore{cfg.CLI, cfg.RequestTimeout}
 }
 
 // Remove removes the image from the image store.
-func (s *ImageStore) RemoveImage(ctx context.Context, req *runtime.RemoveImageRequest) (*runtime.RemoveImageResponse, error) {
-	img, err := s.ImageStatus(ctx, &runtime.ImageStatusRequest{Image: req.Image})
+func (s *ImageStore) RemoveImage(ctx context.Context, req *runtimeapi.RemoveImageRequest) (*runtimeapi.RemoveImageResponse, error) {
+	img, err := s.ImageStatus(ctx, &runtimeapi.ImageStatusRequest{Image: req.Image})
 	if err != nil {
 		return nil, err
 	}
@@ -72,14 +72,14 @@ func (s *ImageStore) RemoveImage(ctx context.Context, req *runtime.RemoveImageRe
 		return nil, fmt.Errorf("failed to remove the image, output: %s\nerr: %v", output, err)
 	}
 
-	return &runtime.RemoveImageResponse{}, nil
+	return &runtimeapi.RemoveImageResponse{}, nil
 }
 
 // ImageStatus returns the status of the image.
 // TODO(euank): rkt should support listing a single image so this is more
 // efficient
-func (s *ImageStore) ImageStatus(ctx context.Context, req *runtime.ImageStatusRequest) (*runtime.ImageStatusResponse, error) {
-	images, err := s.ListImages(ctx, &runtime.ListImagesRequest{})
+func (s *ImageStore) ImageStatus(ctx context.Context, req *runtimeapi.ImageStatusRequest) (*runtimeapi.ImageStatusResponse, error) {
+	images, err := s.ListImages(ctx, &runtimeapi.ListImagesRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -102,16 +102,16 @@ func (s *ImageStore) ImageStatus(ctx context.Context, req *runtime.ImageStatusRe
 	// For the latter, we need to iterate over []img.RepoTags.
 	for _, img := range images.Images {
 		if img.Id == reqImg || util.ExistInSlice(img.RepoTags, reqImg) {
-			return &runtime.ImageStatusResponse{Image: img}, nil
+			return &runtimeapi.ImageStatusResponse{Image: img}, nil
 		}
 	}
 
 	// api expected response for "Image does not exist"
-	return &runtime.ImageStatusResponse{}, nil
+	return &runtimeapi.ImageStatusResponse{}, nil
 }
 
 // ListImages lists images in the store
-func (s *ImageStore) ListImages(ctx context.Context, req *runtime.ListImagesRequest) (*runtime.ListImagesResponse, error) {
+func (s *ImageStore) ListImages(ctx context.Context, req *runtimeapi.ListImagesRequest) (*runtimeapi.ListImagesResponse, error) {
 	list, err := s.RunCommand("image", "list",
 		"--full",
 		"--format=json",
@@ -128,7 +128,7 @@ func (s *ImageStore) ListImages(ctx context.Context, req *runtime.ListImagesRequ
 		return nil, fmt.Errorf("could not unmarshal images into expected format: %v", err)
 	}
 
-	images := make([]*runtime.Image, 0, len(list))
+	images := make([]*runtimeapi.Image, 0, len(list))
 	for i, _ := range listEntries {
 		img := listEntries[i]
 
@@ -144,14 +144,14 @@ func (s *ImageStore) ListImages(ctx context.Context, req *runtime.ListImagesRequ
 		}
 
 		sz := uint64(img.Size)
-		image := &runtime.Image{
+		image := &runtimeapi.Image{
 			Id:          img.ID,
 			RepoTags:    []string{realName},
 			RepoDigests: []string{img.ID},
 			Size_:       sz,
 		}
 		if uid, err := strconv.ParseInt(user, 10, 64); err != nil {
-			image.Uid = &runtime.Int64Value{uid}
+			image.Uid = &runtimeapi.Int64Value{uid}
 		} else {
 			image.Username = user
 		}
@@ -161,11 +161,11 @@ func (s *ImageStore) ListImages(ctx context.Context, req *runtime.ListImagesRequ
 		}
 	}
 
-	return &runtime.ListImagesResponse{Images: images}, nil
+	return &runtimeapi.ListImagesResponse{Images: images}, nil
 }
 
 // ImageFSInfo returns information of the filesystem that is used to store images.
-func (s *ImageStore) ImageFsInfo(ctx context.Context, req *runtime.ImageFsInfoRequest) (*runtime.ImageFsInfoResponse, error) {
+func (s *ImageStore) ImageFsInfo(ctx context.Context, req *runtimeapi.ImageFsInfoRequest) (*runtimeapi.ImageFsInfoResponse, error) {
 	return nil, fmt.Errorf("not implemented")
 }
 
@@ -211,7 +211,7 @@ func (s *ImageStore) getImageUser(manifest *appcschema.ImageManifest) string {
 }
 
 // PullImage pulls an image into the store
-func (s *ImageStore) PullImage(ctx context.Context, req *runtime.PullImageRequest) (*runtime.PullImageResponse, error) {
+func (s *ImageStore) PullImage(ctx context.Context, req *runtimeapi.PullImageRequest) (*runtimeapi.PullImageResponse, error) {
 	canonicalImageName, err := util.GetCanonicalImageName(req.Image.GetImage())
 	if err != nil {
 		return nil, fmt.Errorf("unable to default tag for img %q, %v", req.Image.Image, err)
@@ -227,13 +227,13 @@ func (s *ImageStore) PullImage(ctx context.Context, req *runtime.PullImageReques
 	}
 	imageId := output[len(output)-1]
 
-	return &runtime.PullImageResponse{
+	return &runtimeapi.PullImageResponse{
 		ImageRef: imageId,
 	}, nil
 }
 
 // passFilter returns whether the target image satisfies the filter.
-func passFilter(image *runtime.Image, filter *runtime.ImageFilter) bool {
+func passFilter(image *runtimeapi.Image, filter *runtimeapi.ImageFilter) bool {
 	if filter == nil {
 		return true
 	}
