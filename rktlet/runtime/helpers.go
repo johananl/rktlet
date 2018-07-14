@@ -29,8 +29,8 @@ import (
 	rkt "github.com/rkt/rkt/api/v1"
 	"github.com/rkt/rkt/networking/netinfo"
 	"golang.org/x/net/context"
-	runtimeApi "k8s.io/kubernetes/pkg/kubelet/apis/cri/v1alpha1/runtime"
 	k8sApi "k8s.io/kubernetes/pkg/apis/core"
+	runtimeApi "k8s.io/kubernetes/pkg/kubelet/apis/cri/runtime/v1alpha2"
 )
 
 const (

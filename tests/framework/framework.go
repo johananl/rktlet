@@ -36,7 +36,7 @@ import (
 	apitypes "k8s.io/apimachinery/pkg/types"
 	"k8s.io/kubernetes/pkg/credentialprovider"
 	apitest "k8s.io/kubernetes/pkg/kubelet/apis/cri/testing"
-	"k8s.io/kubernetes/pkg/kubelet/apis/cri/v1alpha1/runtime"
+	"k8s.io/kubernetes/pkg/kubelet/apis/cri/runtime/v1alpha2"
 	kubecontainer "k8s.io/kubernetes/pkg/kubelet/container"
 	containertest "k8s.io/kubernetes/pkg/kubelet/container/testing"
 	"k8s.io/kubernetes/pkg/kubelet/kuberuntime"
