@@ -241,6 +241,8 @@ func generateAppAddCommand(req *runtimeApi.CreateContainerRequest, imageID strin
 		logPath = req.Config.LogPath
 	}
 
+	glog.Infof("*** log path: %s ***", logPath)
+
 	// TODO(yifan): Split the function into sub-functions.
 	// Generate the command and arguments for 'rkt app add'.
 	cmd := []string{
