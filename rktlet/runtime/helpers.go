@@ -238,7 +238,7 @@ func generateAppAddCommand(req *runtimeApi.CreateContainerRequest, imageID strin
 		logPath = fmt.Sprintf("%s_0.log", appName)
 		glog.Warningf("log path not specified in container config, which shouldn't happen when running rktlet with a real kubernetes installation, setting it to %s", logPath)
 	} else {
-		// Replace slashes with underscores
+		// Replace slashes with underscores.
 		logPath = strings.Replace(req.Config.LogPath, "/", "_", -1)
 	}
 
